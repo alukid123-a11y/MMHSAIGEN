@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Photo Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { font-size: 2em; margin-bottom: 10px; }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+    input { width: 60%; }
+    button { background: #4CAF50; color: white; cursor: pointer; }
+    button:hover { background: #45a049; }
+    img {
+      max-width: 90%;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.2);
+    }
+    #result { margin-top: 20px; font-size: 1.2em; }
+    #spinner {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Photo Generator</h1>
+  <p>Type a prompt and generate an AI image</p>
+
+  <input type="text" id="prompt" placeholder="e.g. A futuristic city on Mars">
+  <button onclick="generateImage()">Generate</button>
+
+  <div id="spinner">⏳ Generating image... Please wait</div>
+  <div id="result">Your image will appear here 👇</div>
+
+  <script>
+    async function generateImage() {
+      const prompt = document.getElementById("prompt").value;
+      const resultDiv = document.getElementById("result");
+      const spinner = document.getElementById("spinner");
+
+      if (!prompt.trim()) {
+        resultDiv.innerHTML = "⚠️ Please type a prompt first!";
+        return;
+      }
+
+      spinner.style.display = "block";
+      resultDiv.innerHTML = "";
+
+      try {
+        const response = await fetch("https://stabilityai-stable-diffusion.hf.space/run/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: [prompt] })
+        });
+
+        if (!response.ok) throw new Error("API error: " + response.statusText);
+
+        const data = await response.json();
+        const imgBase64 = data.data[0];
+        spinner.style.display = "none";
+        resultDiv.innerHTML = `<img src="data:image/png;base64,${imgBase64}" alt="Generated Image">`;
+
+      } catch (error) {
+        spinner.style.display = "none";
+        resultDiv.innerHTML = "⚠️ Error: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
